@@ -11,7 +11,8 @@ const AuthSchema = new mongoose.Schema({
     },
     password:{    
         type: String,
-        required: true
+        required: true,
+        minlength: 6,
     },
     mobile:{
         type: Number,
@@ -19,8 +20,8 @@ const AuthSchema = new mongoose.Schema({
         min:1000000000,
         max:9999999999,
     },
-    user:{
-        type: String,
+    refreshToken:{
+        type:String,
     }
 },{
     timestamps: true,
