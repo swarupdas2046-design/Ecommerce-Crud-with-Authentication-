@@ -34,7 +34,7 @@ AuthSchema.pre("save",async function(){
     this.password = bcrypt.hashSync(this.password,10)
 })
 // ------- Method to compare entered password with hashed password -------
-AuthSchema.method.ComparePassword = function(password) {
+AuthSchema.methods.ComparePassword = function(password) {
     return bcrypt.compareSync(password,this.password)
 }
 
