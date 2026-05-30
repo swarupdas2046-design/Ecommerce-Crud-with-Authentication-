@@ -46,10 +46,21 @@ export const CreateProduct = async (req, res) => {
 // ----- get all products Controller -----
 export const GetallProducts = async (req, res) => {
   try {
+        // ----- Get the data from the request query -----
+        const {category} = req.query
+      // ----- Create a filter object -----
+      let filter = {};
+
+    // ------ if category is present then add it to the filter object ------
+    if (category) {
+      filter.category = category;
+    }
+
+    // ----- fetch specific documents from the database -----
+    // ----  & if filter is empty then fetch all the documents -----
     // ----- Get all the documents from the database -----
-    const View = await ImageModel.find({
-        user: req.User.email
-    });
+    const View = await ImageModel.find(filter);
+
     // ----- Return the response -----
     return res.status(200).json({
       message: "File Fetched Successfully",

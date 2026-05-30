@@ -2,7 +2,7 @@ import express from 'express'
 import { GetRefreshToken, UserLogin, UserRegister } from '../Controllers/auth.controller.js'
 
 
-
+// ----- Create the express router -----
 const Router = express.Router()
 
 

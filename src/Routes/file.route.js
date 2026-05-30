@@ -3,16 +3,16 @@ import { AuthMiddleware } from "../Middlewares/auth.middleware.js";
 import { Send_file } from "../Config/File.config.js";
 import { CreateProduct, DeleteProduct, GetallProducts, GetProductById, UpdateProduct } from "../Controllers/product.controller.js";
 
-const Routes = express()
+const Routes = express.Router()
 
 // ----- create product api -----
 Routes.post("/createProduct", AuthMiddleware , Send_file.array("image", 5), CreateProduct);
 
 // ----- get all products api -----
-Routes.get("/getallProducts", AuthMiddleware , GetallProducts);
+Routes.get("/getallProducts",  GetallProducts);
 
 // ----- get product by id api -----
-Routes.get("/getProductById/:id",AuthMiddleware,GetProductById)
+Routes.get("/getProductById/:id",GetProductById)
 
 // ----- update product api -----
 Routes.put("/UpdateProduct/:id", AuthMiddleware , Send_file.array("image", 5), UpdateProduct);

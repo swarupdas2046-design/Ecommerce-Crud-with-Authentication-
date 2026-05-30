@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+// ----- Connect to the database -----
 const Database = async() => {
     try {
         await mongoose.connect(process.env.MONGODB_URL)
@@ -7,5 +8,6 @@ const Database = async() => {
         console.log(error);
     }
 }
+// ----- Export the function -----
 
 export default Database 

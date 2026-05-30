@@ -10,38 +10,32 @@ A highly scalable and secure backend REST API for an E-Commerce platform. This p
 
 ---
 
-
 ## 🚀 Features
 
 ### 🔐 Authentication
-
 * User Registration
 * User Login
 * Password Hashing using bcrypt
-* JWT Access Token
-* JWT Refresh Token
+* JWT Access Token & Refresh Token
 * Cookie-Based Authentication
 * Refresh Token Regeneration
 * Protected Routes
 
 ### 📦 Product Management
-
 * Create Product
-* Get All Products
+* Get All Products (with Category Filtering)
 * Get Product By ID
 * Update Product
 * Delete Product
-* Multiple Image Upload Support
+* Multiple Image Upload Support (Max 5 images)
 
 ### ☁️ Cloud Storage
-
 * Image Upload using ImageKit
 * Multiple Images Upload
 * Delete Images from ImageKit when Product is Deleted
 * Replace Images during Product Update
 
 ### 🗄️ Database
-
 * MongoDB
 * Mongoose ODM
 * Schema Validation
@@ -49,8 +43,7 @@ A highly scalable and secure backend REST API for an E-Commerce platform. This p
 
 ---
 
-
-# 🔐 Authentication Flow
+## 🔐 Authentication Flow
 
 ```text
 User Register/Login
@@ -82,7 +75,7 @@ Here is how a request flows through the application when a user uploads a new pr
 ```text
 [ Client/Frontend ] 
        │
-       ▼ (HTTP POST /createProduct with Multipart form-data)
+       ▼ (HTTP POST /products with Multipart form-data)
 [ Express Routes ] 
        │
        ├─► [ AuthMiddleware ] ──(Verifies JWT Access Token)──► ❌ (401 If Invalid)
@@ -140,68 +133,156 @@ ECOMERCE-CRUD/
 
 ### 1. Configurations (`/Config`)
 * **`Database.js`**: Connects the Express server to the MongoDB database asynchronously using Mongoose.
-* **`File.config.js`**: Initializes **Multer** using `memoryStorage()`. Instead of saving files to the local disk, it keeps them in memory buffers so they can be directly streamed to ImageKit.
-* **`imagekit.js`**: Connects to the ImageKit cloud platform. Contains helper functions (`Upload_files` and `Delete_file`) to push buffers to the cloud and remove them when a product is updated or deleted.
+* **`File.config.js`**: Initializes **Multer** using `memoryStorage()`. Keeps files in memory buffers to stream directly to ImageKit.
+* **`imagekit.js`**: Connects to ImageKit cloud. Contains helper functions (`Upload_files`, `Delete_file`) for cloud storage management.
 
 ### 2. Middlewares & Utilities (`/Middlewares`, `/Utils`)
-* **`auth.middleware.js`**: Extracts the `accessToken` from HTTP-only cookies, verifies it using the secret key, and attaches the authenticated user's data to the `req` object for downstream use.
+* **`auth.middleware.js`**: Extracts the `accessToken` from HTTP-only cookies, verifies it, and attaches the authenticated user's data to the `req` object.
 * **`Token.js`**: Centralized logic for signing short-lived Access Tokens and long-lived Refresh Tokens.
 
 ### 3. Database Models (`/Models`)
-* **`auth.model.js`**: Manages user data. Features a Mongoose `pre('save')` hook that automatically hashes passwords using `bcrypt` before saving them to the database. It also includes a custom instance method `ComparePassword()` for login verification.
-* **`product.model.js`**: Defines the product structure (name, price, category, description). Crucially, it handles images as an array of sub-documents containing both the cloud `url` (for frontend display) and the `fileId` (required for deletion from ImageKit).
+* **`auth.model.js`**: Manages user data with a Mongoose `pre('save')` hook for automatic `bcrypt` password hashing.
+* **`product.model.js`**: Defines the product structure (name, price, category, description) and handles images as an array of sub-documents (URL and fileId).
 
 ### 4. Controllers (`/Controllers`)
-* **Auth Controllers**: 
-  * `UserRegister` & `UserLogin`: Issue both Access and Refresh tokens, storing them securely in cookies.
-  * `GetRefreshToken`: Validates an expired session and silently issues a new Access token using the stored Refresh token.
-* **Product Controllers**: 
-  * `CreateProduct`: Loops through `req.files`, uploads them concurrently using `Promise.all()`, and saves the product.
-  * `UpdateProduct` & `DeleteProduct`: Ensure that when a product is modified or removed, the associated images are also permanently deleted from ImageKit cloud storage to prevent orphan files.
+* **Auth Controllers**: Handles registration, login, and silent token regeneration via refresh tokens.
+* **Product Controllers**: Orchestrates CRUD operations and ensures ImageKit cloud storage stays in sync when products are updated or deleted (preventing orphan files).
 
 ---
 
----
-
-# 🏗 MVC Architecture
+## 🏗 MVC Architecture
 
 ```text
                 Client Request
                        │
                        ▼
-                  Routes Layer
+                 Routes Layer
                        │
                        ▼
                 Controllers Layer
                        │
              ┌─────────┴─────────┐
              ▼                   ▼
-         Models             ImageKit
+         Models              ImageKit
              │
              ▼
           MongoDB
 ```
 
+---
 
+## 📖 Detailed API Documentation
 
+### 🔐 1. Authentication Routes
 
-## 📡 API Endpoints
+#### **Register User**
+* **Route:** `/api/auth/register`
+* **Method:** `POST`
+* **Authentication Required:** No
+* **Required Fields:** `name`, `email`, `password`, `mobile`
+* **Request Body (JSON):**
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword123",
+    "mobile": 9876543210
+  }
+  ```
+* **Success Response (201 Created):**
+  ```json
+  {
+    "message": "User created successfully",
+    "user": { ...userData }
+  }
+  ```
+* **Error Responses:** `400 Bad Request` (Missing fields / User already exists), `500 Internal Server Error`.
 
-### 🔐 Authentication Routes (`/api/auth`)
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| POST | `/register` | Create a new user account & generate tokens | Public |
-| POST | `/login` | Authenticate user & set HTTP-only cookies | Public |
-| GET | `/getRefreshToken`| Generate a new access token using refresh token| Public |
+#### **Login User**
+* **Route:** `/api/auth/login`
+* **Method:** `POST`
+* **Authentication Required:** No
+* **Required Fields:** `email`, `password`
+* **Success Response (200 OK):** Sets `accessToken` and `refreshToken` in HTTP-only cookies.
+  ```json
+  {
+    "message": "User Login SuccessFully",
+    "user": { ...userData }
+  }
+  ```
+* **Error Responses:** `400 Bad Request`, `404 Not Found` (Wrong Password / User not found).
 
-### 📦 Product & File Routes (`/api/product`)
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| POST | `/createProduct` | Create a product (Uploads max 5 images) | Protected |
-| GET | `/getallProducts` | Fetch all products for the logged-in user | Protected |
-| GET | `/getProductById/:id` | Fetch specific product details by its ID | Protected |
-| PUT | `/UpdateProduct/:id`| Update product details & replace images | Protected |
-| DELETE| `/DeleteProduct/:id`| Delete product & remove images from cloud | Protected |
+---
+
+### 📦 2. Product Routes
+
+#### **Create a Product**
+* **Route:** `/api/product/products`
+* **Method:** `POST`
+* **Authentication Required:** Yes (JWT via Cookie)
+* **Required Fields:** `name`, `price`, `description`, `category`, `image` (Files)
+* **Request Format:** `multipart/form-data`
+* **Example Request:**
+  * `name`: "Wireless Mouse"
+  * `price`: 599
+  * `category`: "electronics"
+  * `description`: "Ergonomic wireless mouse"
+  * `image`: [File1.jpg, File2.jpg] (Max 5)
+* **Success Response (201 Created):**
+  ```json
+  {
+    "message": "File uploaded successfully",
+    "NewCreate": { "_id": "...", "name": "Wireless Mouse", "image": [...] }
+  }
+  ```
+* **Error Responses:** `400 Bad Request` (Missing fields), `401 Unauthorized` (Token invalid).
+
+#### **Get All Products (With Filtering)**
+* **Route:** `/api/product/products`
+* **Method:** `GET`
+* **Authentication Required:** No (Public Route)
+* **Query Parameters:** `?category=your_category` (Optional)
+* **Example Request:** `GET /api/product/products?category=electronics`
+* **Success Response (200 OK):**
+  ```json
+  {
+    "message": "Products Fetched Successfully",
+    "View": [ { "name": "Wireless Mouse", "category": "electronics" }, ... ]
+  }
+  ```
+
+#### **Get Product By ID**
+* **Route:** `/api/product/products/:id`
+* **Method:** `GET`
+* **Authentication Required:** No (Public Route)
+* **Success Response (200 OK):** Returns the specific product object.
+* **Error Responses:** `500 Internal Server Error` (Invalid ID format).
+
+#### **Update Product**
+* **Route:** `/api/product/products/:id`
+* **Method:** `PUT`
+* **Authentication Required:** Yes (Only creator can update)
+* **Request Format:** `multipart/form-data`
+* **Success Response (200 OK):**
+  ```json
+  {
+    "message": "File Updated Successfully",
+    "Update": { ...updatedProductData }
+  }
+  ```
+
+#### **Delete Product**
+* **Route:** `/api/product/products/:id`
+* **Method:** `DELETE`
+* **Authentication Required:** Yes (Only creator can delete)
+* **Success Response (200 OK):**
+  ```json
+  {
+    "message": "File and Data Deleted Successfully",
+    "Delete": { ...deletedProductData }
+  }
+  ```
+* **Error Responses:** `404 Not Found` (Document not found / Unauthorized user).
 
 ---
 

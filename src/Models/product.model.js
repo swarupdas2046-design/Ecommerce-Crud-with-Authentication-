@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 
 const ImageSchema = new mongoose.Schema({
+    // ----- Define the schema for the user -----
     name: {
         type: String,
         required: true,
@@ -31,5 +32,5 @@ const ImageSchema = new mongoose.Schema({
 },{
     timestamps: true
 });
-
+// ------- Export the user model -------
 export const ImageModel = mongoose.model("Product",ImageSchema)

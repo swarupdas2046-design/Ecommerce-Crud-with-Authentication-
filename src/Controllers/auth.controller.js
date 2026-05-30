@@ -1,6 +1,7 @@
 import { GenerateAccessToken, GenerateRefreshToken } from '../Utils/Token.js'
 import { AuthModel } from '../Models/auth.model.js'
 import jwt from 'jsonwebtoken'
+// ----- create userRegister Controller -----
 export const UserRegister = async(req,res)=>{
     try {
         // ----- Get the data from the request body -----
@@ -61,7 +62,7 @@ export const UserRegister = async(req,res)=>{
         })
     }
 }
-
+// ----- create userLogin Controller -----
 export const UserLogin = async(req,res)=>{
     try {
         // ----- Get the data from the request body -----
@@ -121,7 +122,7 @@ export const UserLogin = async(req,res)=>{
         })
     }
 }
-
+// ----- get refresh token Controller -----
 export const GetRefreshToken = async(req,res)=>{
 try {
         // ----- Get the refresh token from the cookies -----

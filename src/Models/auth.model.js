@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 const AuthSchema = new mongoose.Schema({
+    // ----- Define the schema for the user -----
     name:{    
         type: String,
         required: true
@@ -38,5 +39,5 @@ AuthSchema.methods.ComparePassword = function(password) {
     return bcrypt.compareSync(password,this.password)
 }
 
-
+// ------- Export the user model -------
 export const AuthModel = mongoose.model("Auth",AuthSchema)
