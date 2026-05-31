@@ -15,8 +15,13 @@ export const CreateProduct = async (req, res) => {
 
         //----- upload files to imagekit -----
     const Transfer = await Promise.all(
-      files.map((elem) => Upload_files(elem.buffer, elem.originalname))
+      files.map((elem) => {
+    const uniqueFilename = `${Date.now()}-${elem.originalname}`;
+    return Upload_files(elem.buffer, uniqueFilename);
+  })
     );
+    console.log("Transfer:------>",Transfer);
+    
 
     // ----- fields and url of the images ----- 
     const imageRecords = Transfer.map((elem) => ({
@@ -128,7 +133,11 @@ export const UpdateProduct = async (req, res) => {
 
       // 2. Update the new images
       const Transfer = await Promise.all(
-        files.map((elem) => Upload_files(elem.buffer, elem.originalname))
+      files.map((elem) => {
+    
+    const uniqueFilename = `${Date.now()}-${elem.originalname}`;
+    return Upload_files(elem.buffer, uniqueFilename);
+  })
       );
 
       // 3. Update the imageRecords

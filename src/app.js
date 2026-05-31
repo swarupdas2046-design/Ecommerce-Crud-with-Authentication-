@@ -1,7 +1,7 @@
 import express from 'express'
 import cookie from 'cookie-parser'
 import Router from './Routes/auth.routes.js'
-import Routes from './Routes/file.route.js'
+import Routes from './Routes/product.routes.js'
 
 // ----- Create the express app -----
 const app = express()

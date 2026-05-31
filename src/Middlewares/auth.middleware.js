@@ -16,11 +16,7 @@ export const AuthMiddleware = async(req,res,next)=>{
         console.log("Decode ------>",Decode);
         
         // ----- Check if the token is valid -----
-        if (!Decode) {
-            return res.status(401).json({
-                message:"Invalid User"
-            })
-        }
+        
         // ----- Check the user exists or not -----
         const User = await AuthModel.findOne({
             _id : Decode.Userid,
